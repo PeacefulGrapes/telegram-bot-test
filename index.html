@@ -183,37 +183,48 @@
     </div>
 
     <script>
-        // Initialize Telegram WebApp SDK
-        const tg = window.Telegram ? window.Telegram.WebApp : null;
-        if (tg) {
-            tg.expand(); // Expand web app to full screen inside Telegram
-            tg.ready();
-        }
+    // Initialize Telegram WebApp SDK
+    const tg = window.Telegram ? window.Telegram.WebApp : null;
 
-        const form = document.getElementById('cvForm');
-        const demoOutput = document.getElementById('demoOutput');
+    if (tg) {
+        tg.expand(); // Expand web app to full screen
+        tg.ready();  // Signal to Telegram that the app is loaded
+    }
 
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
+    const form = document.getElementById('cvForm');
 
-            // Collect all input values into a structured JSON payload
-            const payload = {
-                name: document.getElementById('fullName').value.trim(),
-                date: document.getElementById('docDate').value.trim(),
-                title: document.getElementById('jobTitle').value.trim(),
-                content: document.getElementById('cvContent').value.trim(),
-                submitted_at: new Date().toISOString()
-            };
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
 
-            // If inside Telegram WebApp, send data back to Python bot
-            if (tg && tg.sendData) {
+        // Collect all input values into a structured JSON payload
+        const payload = {
+            name: document.getElementById('fullName').value.trim(),
+            date: document.getElementById('docDate').value.trim(),
+            title: document.getElementById('jobTitle').value.trim(),
+            content: document.getElementById('cvContent').value.trim(),
+            submitted_at: new Date().toISOString()
+        };
+
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.innerText = "Sending to Telegram...";
+        submitBtn.disabled = true;
+
+        if (tg && tg.sendData) {
+            try {
+                // Send JSON payload back to the Python bot
                 tg.sendData(JSON.stringify(payload));
-            } else {
-                // Fallback demo for viewing in normal browser
-                demoOutput.style.display = 'block';
-                demoOutput.textContent = "Data payload that will be sent to your Telegram Bot:\n\n" + JSON.stringify(payload, null, 2);
+                tg.close(); // Close the mini app window
+            } catch (err) {
+                alert("Telegram WebApp Error: " + err.message);
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Generate Document";
             }
-        });
-    </script>
+        } else {
+            alert("This form must be opened inside the Telegram app!");
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Generate Document";
+        }
+    });
+</script>
 </body>
 </html>
