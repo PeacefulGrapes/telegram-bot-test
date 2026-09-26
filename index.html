@@ -1,142 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CV Generator Form</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        :root {
-            --bg-color: var(--tg-theme-bg-color, #f4f6f9);
-            --card-bg: var(--tg-theme-secondary-bg-color, #ffffff);
-            --text-color: var(--tg-theme-text-color, #222222);
-            --hint-color: var(--tg-theme-hint-color, #8e8e93);
-            --border-color: rgba(0, 0, 0, 0.08);
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 16px;
-            box-sizing: border-box;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-            border: 1px solid var(--border-color);
-        }
-
-        .form-group {
-            margin-bottom: 14px;
-        }
-
-        label {
-            display: block;
-            font-size: 12px;
-            font-weight: 700;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            color: var(--hint-color);
-        }
-
-        input[type="text"], textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-size: 15px;
-            box-sizing: border-box;
-            outline: none;
-        }
-
-        textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .row { display: flex; gap: 10px; }
-        .row .form-group { flex: 1; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dynamic Document Generator</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      padding: 16px;
+      background-color: var(--tg-theme-bg-color, #ffffff);
+      color: var(--tg-theme-text-color, #000000);
+      margin: 0;
+    }
+    h2 { margin-bottom: 16px; text-align: center; }
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; text-transform: capitalize; }
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+      background-color: var(--tg-theme-secondary-bg-color, #f4f4f5);
+      color: var(--tg-theme-text-color, #000000);
+    }
+  </style>
 </head>
 <body>
-    <form id="cvForm">
-        <div class="card">
-            <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" id="fullName" placeholder="e.g. John Doe" required>
-            </div>
-            <div class="row">
-                <div class="form-group">
-                    <label>Date</label>
-                    <input type="text" id="docDate" placeholder="e.g. Sept 2026" required>
-                </div>
-                <div class="form-group">
-                    <label>Job Title</label>
-                    <input type="text" id="jobTitle" placeholder="e.g. Developer" required>
-                </div>
-            </div>
-        </div>
 
-        <div class="card">
-            <div class="form-group">
-                <label>CV Body / Content</label>
-                <textarea id="cvContent" placeholder="Describe your experience..." required></textarea>
-            </div>
-        </div>
-    </form>
+  <h2 id="formTitle">Fill Document Fields</h2>
+  <form id="dynamicForm">
+    <div id="inputsContainer"></div>
+  </form>
 
-    <script>
-        const tg = window.Telegram ? window.Telegram.WebApp : null;
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
 
-        if (tg) {
-            tg.expand();
-            tg.ready();
+    // 1. Parse URL variables passed from Python
+    const urlParams = new URLSearchParams(window.location.search);
+    const varsParam = urlParams.get('vars');
 
-            // Setup native Telegram MainButton at the bottom of phone screen
-            tg.MainButton.setText("GENERATE DOCUMENT");
-            tg.MainButton.show();
-            tg.MainButton.enable();
+    const container = document.getElementById('inputsContainer');
+    let fieldList = [];
 
-            tg.MainButton.onClick(function() {
-                const form = document.getElementById('cvForm');
+    if (varsParam) {
+      fieldList = varsParam.split(',');
+    } else {
+      fieldList = ['var1', 'var2', 'var3']; // Fallback if tested directly in browser
+    }
 
-                // Validate form inputs
-                if (!form.checkValidity()) {
-                    form.reportValidity();
-                    return;
-                }
+    document.getElementById('formTitle').innerText = `Fill Document (${fieldList.length} Fields)`;
 
-                // Haptic feedback tap
-                if (tg.HapticFeedback) {
-                    tg.HapticFeedback.impactOccurred('medium');
-                }
+    // 2. Generate input elements dynamically for each variable
+    fieldList.forEach((varName) => {
+      const group = document.createElement('div');
+      group.className = 'form-group';
+      
+      // Formats "full_name" into "full name" for clean UI display
+      const displayLabel = varName.replace(/_/g, ' ');
 
-                tg.MainButton.showProgress(); // Shows loading spinner on button
+      group.innerHTML = `
+        <label for="${varName}">${displayLabel}</label>
+        <input type="text" id="${varName}" name="${varName}" placeholder="Enter ${displayLabel}">
+      `;
+      container.appendChild(group);
+    });
 
-                const payload = {
-                    name: document.getElementById('fullName').value.trim(),
-                    date: document.getElementById('docDate').value.trim(),
-                    title: document.getElementById('jobTitle').value.trim(),
-                    content: document.getElementById('cvContent').value.trim(),
-                    submitted_at: new Date().toISOString()
-                };
+    // 3. Show main submit button inside Telegram
+    tg.MainButton.setText("Generate Document").show();
 
-                try {
-                    tg.sendData(JSON.stringify(payload));
-                    tg.close();
-                } catch (err) {
-                    alert("Error sending data: " + err.message);
-                    tg.MainButton.hideProgress();
-                }
-            });
-        }
-    </script>
+    // 4. Send filled data back to python
+    tg.MainButton.onClick(() => {
+      const formData = {};
+      fieldList.forEach((varName) => {
+        formData[varName] = document.getElementById(varName).value || '';
+      });
+      tg.sendData(JSON.stringify(formData));
+    });
+  </script>
 </body>
 </html>
