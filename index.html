@@ -1,84 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dynamic Document Generator</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      padding: 16px;
-      background-color: var(--tg-theme-bg-color, #ffffff);
-      color: var(--tg-theme-text-color, #000000);
-      margin: 0;
-    }
-    h2 { margin-bottom: 16px; text-align: center; }
-    .form-group { margin-bottom: 12px; }
-    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; text-transform: capitalize; }
-    input {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      box-sizing: border-box;
-      background-color: var(--tg-theme-secondary-bg-color, #f4f4f5);
-      color: var(--tg-theme-text-color, #000000);
-    }
-  </style>
-</head>
-<body>
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.expand();
 
-  <h2 id="formTitle">Fill Document Fields</h2>
-  <form id="dynamicForm">
-    <div id="inputsContainer"></div>
-  </form>
+  // 1. Read and decode the fields JSON from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const fieldsParam = urlParams.get('fields');
 
-  <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
+  let fields = [];
+  if (fieldsParam) {
+    fields = JSON.parse(decodeURIComponent(fieldsParam));
+  } else {
+    // Fallback default for testing in a regular web browser
+    fields = [
+      { id: "v1__Date", order: 1, label: "Date" },
+      { id: "v2__Full_Name", order: 2, label: "Full Name" }
+    ];
+  }
 
-    // 1. Parse URL variables passed from Python
-    const urlParams = new URLSearchParams(window.location.search);
-    const varsParam = urlParams.get('vars');
+  const container = document.getElementById('inputsContainer');
+  document.getElementById('formTitle').innerText = `Fill Document (${fields.length} Fields)`;
 
-    const container = document.getElementById('inputsContainer');
-    let fieldList = [];
+  // 2. Render fields in the sorted order calculated by Python
+  fields.forEach((field) => {
+    const group = document.createElement('div');
+    group.className = 'form-group';
+    group.innerHTML = `
+      <label for="${field.id}">${field.label}</label>
+      <input type="text" id="${field.id}" name="${field.id}" placeholder="Enter ${field.label}">
+    `;
+    container.appendChild(group);
+  });
 
-    if (varsParam) {
-      fieldList = varsParam.split(',');
-    } else {
-      fieldList = ['var1', 'var2', 'var3']; // Fallback if tested directly in browser
-    }
+  tg.MainButton.setText("Generate Document").show();
 
-    document.getElementById('formTitle').innerText = `Fill Document (${fieldList.length} Fields)`;
-
-    // 2. Generate input elements dynamically for each variable
-    fieldList.forEach((varName) => {
-      const group = document.createElement('div');
-      group.className = 'form-group';
-      
-      // Formats "full_name" into "full name" for clean UI display
-      const displayLabel = varName.replace(/_/g, ' ');
-
-      group.innerHTML = `
-        <label for="${varName}">${displayLabel}</label>
-        <input type="text" id="${varName}" name="${varName}" placeholder="Enter ${displayLabel}">
-      `;
-      container.appendChild(group);
+  // 3. Collect responses mapped back to the exact Jinja tags in Word
+  tg.MainButton.onClick(() => {
+    const formData = {};
+    fields.forEach((field) => {
+      formData[field.id] = document.getElementById(field.id).value || '';
     });
-
-    // 3. Show main submit button inside Telegram
-    tg.MainButton.setText("Generate Document").show();
-
-    // 4. Send filled data back to python
-    tg.MainButton.onClick(() => {
-      const formData = {};
-      fieldList.forEach((varName) => {
-        formData[varName] = document.getElementById(varName).value || '';
-      });
-      tg.sendData(JSON.stringify(formData));
-    });
-  </script>
-</body>
-</html>
+    tg.sendData(JSON.stringify(formData));
+  });
+</script>
