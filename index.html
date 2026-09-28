@@ -16,7 +16,8 @@
     h2 { margin-bottom: 16px; text-align: center; }
     .form-group { margin-bottom: 14px; }
     label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; text-transform: capitalize; }
-    input {
+    
+    input, textarea {
       width: 100%;
       padding: 10px;
       border: 1px solid #ccc;
@@ -24,6 +25,13 @@
       box-sizing: border-box;
       background-color: var(--tg-theme-secondary-bg-color, #f4f4f5);
       color: var(--tg-theme-text-color, #000000);
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
     }
   </style>
 </head>
@@ -41,7 +49,6 @@
       tg.expand();
       tg.ready();
 
-      // Read fields passed via URL parameters from Python
       const urlParams = new URLSearchParams(window.location.search);
       const fieldsParam = urlParams.get('fields');
 
@@ -57,20 +64,28 @@
       const container = document.getElementById('inputsContainer');
       document.getElementById('formTitle').innerText = `Fill Document (${fields.length} Fields)`;
 
-      // Render input fields sequentially
+      // Render either <input> or <textarea> based on field.type
       fields.forEach((field) => {
         const group = document.createElement('div');
         group.className = 'form-group';
-        group.innerHTML = `
-          <label for="${field.id}">${field.label}</label>
-          <input type="text" id="${field.id}" name="${field.id}" placeholder="Enter ${field.label}">
-        `;
+
+        if (field.type === 'textarea') {
+          group.innerHTML = `
+            <label for="${field.id}">${field.label}</label>
+            <textarea id="${field.id}" name="${field.id}" rows="4" placeholder="Enter ${field.label}..."></textarea>
+          `;
+        } else {
+          group.innerHTML = `
+            <label for="${field.id}">${field.label}</label>
+            <input type="text" id="${field.id}" name="${field.id}" placeholder="Enter ${field.label}">
+          `;
+        }
+
         container.appendChild(group);
       });
 
       tg.MainButton.setText("GENERATE DOCUMENT").show();
 
-      // Send populated values back to Telegram
       tg.MainButton.onClick(() => {
         const formData = {};
         fields.forEach((field) => {
