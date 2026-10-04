@@ -1,0 +1,107 @@
+{
+  "BP": {
+    "order": 6,
+    "label": "Blood Pressure:",
+    "description": "e.g. 120/80",
+    "type": "text",
+    "options": []
+  },
+  "HR": {
+    "order": 7,
+    "label": "Heart Rate:",
+    "description": "e.g. 80 bpm",
+    "type": "text",
+    "options": []
+  },
+  "RR": {
+    "order": 9,
+    "label": "Respiratory Rate:",
+    "description": "e.g. 16",
+    "type": "text",
+    "options": []
+  },
+  "Sat": {
+    "order": 8,
+    "label": "Oxygen Saturation:",
+    "description": "e.g. 98% ra",
+    "type": "text",
+    "options": []
+  },
+  "Temp": {
+    "order": 10,
+    "label": "Temperature:",
+    "description": "e.g. 37.0° C po",
+    "type": "text",
+    "options": []
+  },
+  "أسماء_الأطباء": {
+    "order": 14,
+    "label": "أسماء الأطباء:",
+    "description": "كل السنوات، كل سنة في سطر",
+    "type": "textarea",
+    "options": []
+  },
+  "اسم_المريض": {
+    "order": 1,
+    "label": "اسم المريض:",
+    "description": "لا تطبع لفظ الجلالة (عبدالله >> عبد___)",
+    "type": "text",
+    "options": []
+  },
+  "الشكايات_الحادة": {
+    "order": 4,
+    "label": "الشكايات الحادة:",
+    "description": "بحال وجود إجراءات ستجرى للمريض غداً الرجاء عدم تدوينها هنا وتدوينها في خانة المعلومات الإضافية",
+    "type": "text",
+    "options": []
+  },
+  "الشكايات_المزمنة": {
+    "order": 5,
+    "label": "الشكايات المزمنة:",
+    "description": "",
+    "type": "text",
+    "options": []
+  },
+  "خطة_المريض": {
+    "order": 13,
+    "label": "خطة المريض:",
+    "description": "",
+    "type": "textarea",
+    "options": []
+  },
+  "رقم_الإضبارة": {
+    "order": 3,
+    "label": "رقم الإضبارة:",
+    "description": "",
+    "type": "text",
+    "options": []
+  },
+  "رقم_الغرفة": {
+    "order": 2,
+    "label": "رقم الغرفة:",
+    "description": "",
+    "type": "text",
+    "options": []
+  },
+  "رقم_للتواصل": {
+    "order": 15,
+    "label": "رقم للتواصل:",
+    "description": "رقم الطبيب المسؤول عن المريض (يفضل السنة الثانية)",
+    "type": "text",
+    "options": []
+  },
+  "سريرياً_اليوم": {
+    "order": 11,
+    "label": "سريرياً اليوم:",
+    "description": "",
+    "type": "textarea",
+    "options": []
+  },
+  "معلومات_إضافية": {
+    "order": 12,
+    "label": "معلومات إضافية:",
+    "description": "التصفية الكلوية، رقم الخضاب، إجراءات للغد...",
+    "type": "textarea",
+    "options": []
+  }
+}
