@@ -15,7 +15,7 @@
     }
     h2 { margin-bottom: 16px; text-align: center; }
     .form-group { margin-bottom: 14px; }
-    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; text-transform: capitalize; }
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 2px; text-transform: capitalize; }
     
     input, textarea, select {
       width: 100%;
@@ -64,37 +64,41 @@
       const container = document.getElementById('inputsContainer');
       document.getElementById('formTitle').innerText = `Fill Document (${fields.length} Fields)`;
 
-      // Render fields according to type: select, textarea, or text input
+      // =========================================================================
+      // PASTE SNIPPET HERE: Replaces the previous fields.forEach loop
+      // =========================================================================
       fields.forEach((field) => {
         const group = document.createElement('div');
         group.className = 'form-group';
 
-        if (field.type === 'select') {
-          const optionsHTML = field.options.map(opt => 
-            `<option value="${opt}">${opt}</option>`
-          ).join('');
+        const descHTML = field.description 
+          ? `<small style="color: var(--tg-theme-hint-color, #777); display: block; font-size: 11px; margin-bottom: 4px;">${field.description}</small>` 
+          : '';
 
+        if (field.type === 'select') {
+          const optionsHTML = field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
           group.innerHTML = `
             <label for="${field.id}">${field.label}</label>
+            ${descHTML}
             <select id="${field.id}" name="${field.id}">
               <option value="" disabled selected>-- Select ${field.label} --</option>
               ${optionsHTML}
-            </select>
-          `;
+            </select>`;
         } else if (field.type === 'textarea') {
           group.innerHTML = `
             <label for="${field.id}">${field.label}</label>
-            <textarea id="${field.id}" name="${field.id}" rows="4" placeholder="Enter ${field.label}..."></textarea>
-          `;
+            ${descHTML}
+            <textarea id="${field.id}" name="${field.id}" rows="4" placeholder="Enter ${field.label}..."></textarea>`;
         } else {
           group.innerHTML = `
             <label for="${field.id}">${field.label}</label>
-            <input type="text" id="${field.id}" name="${field.id}" placeholder="Enter ${field.label}">
-          `;
+            ${descHTML}
+            <input type="text" id="${field.id}" name="${field.id}" placeholder="Enter ${field.label}">`;
         }
 
         container.appendChild(group);
       });
+      // =========================================================================
 
       tg.MainButton.setText("GENERATE DOCUMENT").show();
 
