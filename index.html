@@ -110,12 +110,13 @@
   </form>
 
   <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
+    const tg = window.Telegram?.WebApp;
+    if (tg) tg.expand();
 
     function getFieldsFromURL() {
       const urlParams = new URLSearchParams(window.location.search);
       const fieldsParam = urlParams.get('fields');
+
       if (!fieldsParam) return [];
       try {
         return JSON.parse(decodeURIComponent(fieldsParam));
@@ -130,7 +131,7 @@
       const container = document.getElementById('fields-container');
       container.innerHTML = '';
 
-      if (fields.length === 0) {
+      if (!fields || fields.length === 0) {
         container.innerHTML = '<p style="color: var(--hint-color);">No fields found in request.</p>';
         return;
       }
@@ -170,7 +171,6 @@
             </label>`;
 
         } else {
-          // Handles text, date, number, email, url
           group.innerHTML = `
             <label for="${field.id}">${field.label}</label>
             ${descHTML}
@@ -184,20 +184,21 @@
     document.getElementById('dynamic-form').addEventListener('submit', function(e) {
       e.preventDefault();
       const formData = {};
-      const fields = getFieldsFromURL();
 
-      fields.forEach(field => {
-        const el = document.getElementById(field.id);
-        if (el) {
-          if (field.type === 'checkbox') {
-            formData[field.id] = el.checked ? "Yes" : "No";
-          } else {
-            formData[field.id] = el.value || "";
-          }
+      const inputs = document.querySelectorAll('#fields-container input, #fields-container select, #fields-container textarea');
+      inputs.forEach(input => {
+        if (input.type === 'checkbox') {
+          formData[input.id] = input.checked ? "Yes" : "No";
+        } else {
+          formData[input.id] = input.value || "";
         }
       });
 
-      tg.sendData(JSON.stringify(formData));
+      if (tg && tg.sendData) {
+        tg.sendData(JSON.stringify(formData));
+      } else {
+        console.log("Form Data Payload:", JSON.stringify(formData, null, 2));
+      }
     });
 
     renderForm();
