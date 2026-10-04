@@ -110,98 +110,108 @@
   </form>
 
   <script>
-    const tg = window.Telegram?.WebApp;
-    if (tg) tg.expand();
+  const tg = window.Telegram?.WebApp;
+  if (tg) tg.expand();
 
-    function getFieldsFromURL() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const fieldsParam = urlParams.get('fields');
+  async function loadFields() {
+    try {
+      // Fetch fields.json sitting in the same GitHub Pages folder
+      // Cache buster (?t=...) ensures instantly updated fields
+      const response = await fetch('fields.json?t=' + Date.now());
+      if (!response.ok) throw new Error("Could not load fields.json");
 
-      if (!fieldsParam) return [];
-      try {
-        return JSON.parse(decodeURIComponent(fieldsParam));
-      } catch (e) {
-        console.error("Failed to parse fields parameter:", e);
-        return [];
-      }
+      const data = await response.json();
+
+      // Convert object schema into an ordered array
+      const fieldsArray = Object.keys(data).map(key => ({
+        id: key,
+        ...data[key]
+      }));
+
+      fieldsArray.sort((a, b) => (a.order || 0) - (b.order || 0));
+      return fieldsArray;
+    } catch (err) {
+      console.error("Error loading fields.json:", err);
+      return [];
+    }
+  }
+
+  async function renderForm() {
+    const container = document.getElementById('fields-container');
+    container.innerHTML = '<p style="color: var(--hint-color);">Loading fields...</p>';
+
+    const fields = await loadFields();
+    container.innerHTML = '';
+
+    if (!fields || fields.length === 0) {
+      container.innerHTML = '<p style="color: var(--hint-color);">No fields found in fields.json.</p>';
+      return;
     }
 
-    function renderForm() {
-      const fields = getFieldsFromURL();
-      const container = document.getElementById('fields-container');
-      container.innerHTML = '';
+    fields.forEach(field => {
+      const group = document.createElement('div');
+      group.className = 'form-group';
 
-      if (!fields || fields.length === 0) {
-        container.innerHTML = '<p style="color: var(--hint-color);">No fields found in request.</p>';
-        return;
-      }
+      const descHTML = field.description 
+        ? `<div class="description">${field.description}</div>` 
+        : '';
 
-      fields.sort((a, b) => (a.order || 0) - (b.order || 0));
+      if (field.type === 'select') {
+        const opts = (field.options || []).map(opt => `<option value="${opt}">${opt}</option>`).join('');
+        group.innerHTML = `
+          <label for="${field.id}">${field.label}</label>
+          ${descHTML}
+          <select id="${field.id}" name="${field.id}">
+            <option value="" disabled selected>-- Select ${field.label} --</option>
+            ${opts}
+          </select>`;
 
-      fields.forEach(field => {
-        const group = document.createElement('div');
-        group.className = 'form-group';
+      } else if (field.type === 'textarea') {
+        group.innerHTML = `
+          <label for="${field.id}">${field.label}</label>
+          ${descHTML}
+          <textarea id="${field.id}" name="${field.id}" placeholder="Enter ${field.label}..."></textarea>`;
 
-        const descHTML = field.description 
-          ? `<div class="description">${field.description}</div>` 
-          : '';
+      } else if (field.type === 'checkbox') {
+        group.innerHTML = `
+          ${descHTML}
+          <label class="checkbox-container">
+            <input type="checkbox" id="${field.id}" name="${field.id}">
+            <span>${field.label}</span>
+          </label>`;
 
-        if (field.type === 'select') {
-          const opts = (field.options || []).map(opt => `<option value="${opt}">${opt}</option>`).join('');
-          group.innerHTML = `
-            <label for="${field.id}">${field.label}</label>
-            ${descHTML}
-            <select id="${field.id}" name="${field.id}">
-              <option value="" disabled selected>-- Select ${field.label} --</option>
-              ${opts}
-            </select>`;
-
-        } else if (field.type === 'textarea') {
-          group.innerHTML = `
-            <label for="${field.id}">${field.label}</label>
-            ${descHTML}
-            <textarea id="${field.id}" name="${field.id}" placeholder="Enter ${field.label}..."></textarea>`;
-
-        } else if (field.type === 'checkbox') {
-          group.innerHTML = `
-            ${descHTML}
-            <label class="checkbox-container">
-              <input type="checkbox" id="${field.id}" name="${field.id}">
-              <span>${field.label}</span>
-            </label>`;
-
-        } else {
-          group.innerHTML = `
-            <label for="${field.id}">${field.label}</label>
-            ${descHTML}
-            <input type="${field.type}" id="${field.id}" name="${field.id}" placeholder="Enter ${field.label}">`;
-        }
-
-        container.appendChild(group);
-      });
-    }
-
-    document.getElementById('dynamic-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const formData = {};
-
-      const inputs = document.querySelectorAll('#fields-container input, #fields-container select, #fields-container textarea');
-      inputs.forEach(input => {
-        if (input.type === 'checkbox') {
-          formData[input.id] = input.checked ? "Yes" : "No";
-        } else {
-          formData[input.id] = input.value || "";
-        }
-      });
-
-      if (tg && tg.sendData) {
-        tg.sendData(JSON.stringify(formData));
       } else {
-        console.log("Form Data Payload:", JSON.stringify(formData, null, 2));
+        group.innerHTML = `
+          <label for="${field.id}">${field.label}</label>
+          ${descHTML}
+          <input type="${field.type}" id="${field.id}" name="${field.id}" placeholder="Enter ${field.label}">`;
+      }
+
+      container.appendChild(group);
+    });
+  }
+
+  document.getElementById('dynamic-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = {};
+
+    const inputs = document.querySelectorAll('#fields-container input, #fields-container select, #fields-container textarea');
+    inputs.forEach(input => {
+      if (input.type === 'checkbox') {
+        formData[input.id] = input.checked ? "Yes" : "No";
+      } else {
+        formData[input.id] = input.value || "";
       }
     });
 
-    renderForm();
-  </script>
+    if (tg && tg.sendData) {
+      tg.sendData(JSON.stringify(formData));
+    } else {
+      console.log("Form Data Payload:", JSON.stringify(formData, null, 2));
+    }
+  });
+
+  renderForm();
+</script>
 </body>
 </html>
