@@ -67,37 +67,49 @@
       // =========================================================================
       // PASTE SNIPPET HERE: Replaces the previous fields.forEach loop
       // =========================================================================
-      fields.forEach((field) => {
-        const group = document.createElement('div');
-        group.className = 'form-group';
+fields.forEach((field) => {
+  const group = document.createElement('div');
+  group.className = 'form-group';
 
-        const descHTML = field.description 
-          ? `<small style="color: var(--tg-theme-hint-color, #777); display: block; font-size: 11px; margin-bottom: 4px;">${field.description}</small>` 
-          : '';
+  const descHTML = field.description 
+    ? `<small style="color: var(--tg-theme-hint-color, #777); display: block; font-size: 11px; margin-bottom: 4px;">${field.description}</small>` 
+    : '';
 
-        if (field.type === 'select') {
-          const optionsHTML = field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
-          group.innerHTML = `
-            <label for="${field.id}">${field.label}</label>
-            ${descHTML}
-            <select id="${field.id}" name="${field.id}">
-              <option value="" disabled selected>-- Select ${field.label} --</option>
-              ${optionsHTML}
-            </select>`;
-        } else if (field.type === 'textarea') {
-          group.innerHTML = `
-            <label for="${field.id}">${field.label}</label>
-            ${descHTML}
-            <textarea id="${field.id}" name="${field.id}" rows="4" placeholder="Enter ${field.label}..."></textarea>`;
-        } else {
-          group.innerHTML = `
-            <label for="${field.id}">${field.label}</label>
-            ${descHTML}
-            <input type="text" id="${field.id}" name="${field.id}" placeholder="Enter ${field.label}">`;
-        }
+  if (field.type === 'select') {
+    const optionsHTML = field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+    group.innerHTML = `
+      <label for="${field.id}">${field.label}</label>
+      ${descHTML}
+      <select id="${field.id}" name="${field.id}">
+        <option value="" disabled selected>-- Select ${field.label} --</option>
+        ${optionsHTML}
+      </select>`;
 
-        container.appendChild(group);
-      });
+  } else if (field.type === 'textarea') {
+    group.innerHTML = `
+      <label for="${field.id}">${field.label}</label>
+      ${descHTML}
+      <textarea id="${field.id}" name="${field.id}" rows="4" placeholder="Enter ${field.label}..."></textarea>`;
+
+  } else if (field.type === 'checkbox') {
+    // Checkbox input layout
+    group.innerHTML = `
+      ${descHTML}
+      <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+        <input type="checkbox" id="${field.id}" name="${field.id}" style="width: auto;">
+        ${field.label}
+      </label>`;
+
+  } else {
+    // Handles text, date, number, email, tel, url automatically via type attribute
+    group.innerHTML = `
+      <label for="${field.id}">${field.label}</label>
+      ${descHTML}
+      <input type="${field.type}" id="${field.id}" name="${field.id}" placeholder="Enter ${field.label}">`;
+  }
+
+  container.appendChild(group);
+});
       // =========================================================================
 
       tg.MainButton.setText("GENERATE DOCUMENT").show();
